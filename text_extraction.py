@@ -1,12 +1,12 @@
 import cv2
 import pytesseract
-from PIL import Image
-
-# Ensure Tesseract is installed and set the path to the executable
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+import os
 
 
 def preprocess_image(image_path):
+    """
+    Preprocess the input image for better OCR accuracy.
+    """
     # Read the image
     img = cv2.imread(image_path)
 
@@ -18,32 +18,63 @@ def preprocess_image(image_path):
 
     # Apply adaptive thresholding
     thresholded = cv2.adaptiveThreshold(
-        denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-    )
+        denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+    
+    # Apply dilation to make numbers more distinct
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    dilated = cv2.dilate(thresholded, kernel, iterations=1)
 
-    return thresholded
+    return dilated
 
 
-def extract_text(preprocessed_image):
-    # Use Tesseract to perform OCR
-    text = pytesseract.image_to_string(preprocessed_image)
-    return text
+def extract_text(preprocessed_image, languages="eng+hin+tel"):
+    """
+    Extract text from a preprocessed image using Tesseract.
+    
+    :param preprocessed_image: The preprocessed image ready for OCR.
+    :param languages: Languages to be used for OCR (default: English, Hindi, Telugu).
+    :return: Extracted text.
+    """
+    try:
+        # Use Tesseract to perform OCR with the specified languages
+        custom_config = "--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        text = pytesseract.image_to_string(preprocessed_image, lang=languages, config=custom_config)
+        return text
+    except Exception as e:
+        print(f"Error during text extraction: {e}")
+        return ""
 
 
 if __name__ == "__main__":
     # Input image path
-    image_path = "Bhargavi_aadhar.jpg"  # Replace with your image path
+    image_path = "img\Bhargavi_aadhar.jpg"  # Replace with your image path
 
-    # Preprocess the image
-    preprocessed_img = preprocess_image(image_path)
+    try:
+        # Preprocess the image
+        print("Preprocessing the image...")
+        preprocessed_img = preprocess_image(image_path)
 
-    # Save and display the preprocessed image for debugging
-    cv2.imwrite("preprocessed_image.jpg", preprocessed_img)
-    cv2.imshow("Preprocessed Image", preprocessed_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        # Dynamically construct the filename
+        # Extract original filename without extension
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        # Add "preprocess" to the name
+        preprocessed_img_path = f"preprocessed_img/{base_name}_preprocess.jpg"
 
-    # Extract text
-    extracted_text = extract_text(preprocessed_img)
-    print("Extracted Text:")
-    print(extracted_text)
+        # Save and display the preprocessed image for debugging
+        cv2.imwrite(preprocessed_img_path, preprocessed_img)
+        print(f"Preprocessed image saved at: {preprocessed_img_path}")
+
+        cv2.imshow("Preprocessed Image", preprocessed_img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        # Extract text
+        print("Extracting text from the image...")
+        extracted_text = extract_text(preprocessed_img, languages="eng+tel")
+
+        # Display the extracted text
+        print("\nExtracted Text:")
+        print(extracted_text)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
