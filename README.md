@@ -84,10 +84,6 @@ We welcome contributions from the community! If you'd like to contribute to the 
 
    • Select your branch and describe your changes.
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Acknowledgments
 
    • Special thanks to all the contributors who have helped make this project a success.
@@ -100,7 +96,7 @@ If you have any questions or suggestions, feel free to reach out:
 
   • Harsha Vardhan
 
-  • Email: 
+  • Email: HarshavardhanBoyidapu@gmail.com
 
   • GitHub: HarshaVardhan3112
 
