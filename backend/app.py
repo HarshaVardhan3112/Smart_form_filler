@@ -59,7 +59,7 @@ def fill_form():
             extracted_data = json.load(f)
         
         filled_pdf_path = fill_pdf_form(pdf_path, extracted_data)
-        return send_file(filled_pdf_path, as_attachment=True, mimetype="application/pdf")
+        return send_file(filled_pdf_path, as_attachment=False, mimetype="application/pdf")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
