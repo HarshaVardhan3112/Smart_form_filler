@@ -5,10 +5,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 function UploadID() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [file, setFile] = useState(null);
-  const [filePreview, setFilePreview] = useState(null);
-  const [extractedData, setExtractedData] = useState(null);
-  const [editableData, setEditableData] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [filePreviews, setFilePreviews] = useState([]);
+  const [extractedData, setExtractedData] = useState({});
+  const [editableData, setEditableData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,22 +16,22 @@ function UploadID() {
   useEffect(() => {
     if (location.state) {
       const { idFiles, extractedData } = location.state;
-      setFile(idFiles[0]);
+      setFiles(idFiles);
       setExtractedData(extractedData);
       setEditableData(extractedData);
-      setFilePreview(idFiles ? URL.createObjectURL(idFiles[0]) : null);
+      setFilePreviews(idFiles.map(file => URL.createObjectURL(file)));
     }
   }, [location.state]);
 
   const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    setFile(selectedFile);
-    setFilePreview(URL.createObjectURL(selectedFile));
+    const selectedFiles = Array.from(event.target.files);
+    setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
+    setFilePreviews(prevPreviews => [...prevPreviews, ...selectedFiles.map(file => URL.createObjectURL(file))]);
   };
 
   const handleUpload = async () => {
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach(file => formData.append('files', file));
 
     try {
       const response = await axios.post('http://localhost:5000/upload-id', formData, {
@@ -39,12 +39,13 @@ function UploadID() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setExtractedData(response.data.extracted_data);
-      setEditableData(response.data.extracted_data);
+      const newExtractedData = response.data.extracted_data;
+      setExtractedData(prevData => ({ ...prevData, ...newExtractedData }));
+      setEditableData(prevData => ({ ...prevData, ...newExtractedData }));
       setError(null); // Clear any previous errors
     } catch (error) {
-      console.error('Error uploading file:', error);
-      setError('Failed to upload file. Please try again.');
+      console.error('Error uploading files:', error);
+      setError('Failed to upload files. Please try again.');
     }
   };
 
@@ -73,17 +74,19 @@ function UploadID() {
   };
 
   const handleUploadForm = () => {
-    navigate('/upload-form', { state: { idFiles: [file], extractedData } });
+    navigate('/upload-form', { state: { idFiles: files, extractedData } });
   };
 
   return (
     <div>
       <h1>Upload ID</h1>
-      <input type="file" onChange={handleFileChange} />
-      {filePreview && <img src={filePreview} alt="Uploaded ID" style={{ width: '200px', marginTop: '10px' }} />}
+      <input type="file" onChange={handleFileChange} multiple />
+      {filePreviews.map((preview, index) => (
+        <img key={index} src={preview} alt={`Uploaded ID ${index + 1}`} style={{ width: '200px', marginTop: '10px' }} />
+      ))}
       <button onClick={handleUpload}>Upload</button>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {extractedData && (
+      {Object.keys(extractedData).length > 0 && (
         <div>
           <h2>Extracted Data</h2>
           <pre>{JSON.stringify(extractedData, null, 2)}</pre>
@@ -106,6 +109,7 @@ function UploadID() {
               <button onClick={handleUpdateData}>Update Data</button>
             </div>
           )}
+          {/* <button onClick={() => setFiles([])}>Upload Another ID</button> */}
         </div>
       )}
     </div>

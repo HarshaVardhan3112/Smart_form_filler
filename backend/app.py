@@ -12,23 +12,37 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/upload-id", methods=["POST"])
 def upload_id():
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
+    if "files" not in request.files:
+        return jsonify({"error": "No files uploaded"}), 400
 
-    file = request.files["file"]
-    filename = secure_filename(file.filename)
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(file_path)
+    files = request.files.getlist("files")
+    extracted_data = {}
 
-    try:
-        extracted_data = extract_text_from_id(file_path)
-        # Save extracted data to a temporary file
-        extracted_data_path = os.path.join(UPLOAD_FOLDER, "extracted_data.json")
-        with open(extracted_data_path, "w") as f:
-            json.dump(extracted_data, f)
-        return jsonify({"extracted_data": extracted_data})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Clear existing extracted data at the start of a new session or request
+    extracted_data_path = os.path.join(UPLOAD_FOLDER, "extracted_data.json")
+    if os.path.exists(extracted_data_path):
+        os.remove(extracted_data_path)
+
+    for file in files:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+
+        try:
+            new_data = extract_text_from_id(file_path)
+            for key, value in new_data.items():
+                if key in extracted_data and extracted_data[key] == "NOT FOUND":
+                    extracted_data[key] = value
+                elif key not in extracted_data:
+                    extracted_data[key] = value
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    # Save combined extracted data to a temporary file
+    with open(extracted_data_path, "w") as f:
+        json.dump(extracted_data, f)
+
+    return jsonify({"extracted_data": extracted_data})
 
 @app.route("/update-data", methods=["POST"])
 def update_data():
@@ -59,7 +73,13 @@ def fill_form():
             extracted_data = json.load(f)
         
         filled_pdf_path = fill_pdf_form(pdf_path, extracted_data)
-        return send_file(filled_pdf_path, as_attachment=False, mimetype="application/pdf")
+        response = send_file(filled_pdf_path, as_attachment=False, mimetype="application/pdf")
+        
+        # Delete the extracted data file after sending the response
+        # if os.path.exists(extracted_data_path):
+        #     os.remove(extracted_data_path)
+        
+        return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
