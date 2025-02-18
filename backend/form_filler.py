@@ -33,7 +33,7 @@ def extract_text_from_id(image_path):
         - Address
 
 
-        If any field is missing, try to infer it or return "Not Found".
+        If any field is missing, try to infer it or return "NOT FOUND".
         ''',
             img,
         ],
@@ -58,7 +58,7 @@ def extract_text_from_id(image_path):
     
     for key, pattern in fields.items():
         match = re.search(pattern, extracted_text)
-        extracted_data[key] = match.group(1).strip().upper() if match else "Not Found"
+        extracted_data[key] = match.group(1).strip().upper() if match else "NOT FOUND"
     
     return extracted_data
 
@@ -137,45 +137,69 @@ def merge_multiline_fields(data, threshold_x=70, threshold_y=18):
     return merged_fields
 
 def fill_form_with_extracted_data(pdf_path, extracted_data, word_positions, output_pdf_path):
-    images = pdf2image.convert_from_path(pdf_path)  # Convert PDF to images
-    font_path = "arialbd.ttf"  # Replace with the path to your TrueType font file
-    font_size = 30
-    font = ImageFont.truetype(font_path, font_size)
+    try:
+        if not isinstance(extracted_data, dict):
+            raise ValueError("extracted_data should be a dictionary")
 
-    mapping = {
-        ".name*": "Name",
-        ".date of birth*": "Date of Birth",
-        ".pan*": "PAN Number",
-        ".gender*": "Gender",
-        "aadhaar*": "Aadhaar Number",
-        "address*": "Address",
-        "mobile no.": "Phone Number"
-    }
+        images = pdf2image.convert_from_path(pdf_path)  # Convert PDF to images
+        font_path = "arialbd.ttf"  # Replace with the path to your TrueType font file
+        font_size = 30
+        font = ImageFont.truetype(font_path, font_size)
 
-    for page_num, image in enumerate(images):
-        img_cv = np.array(image)
-        img_pil = image.copy()
-        draw = ImageDraw.Draw(img_pil)
-        
-        for word, pos_list in word_positions.items():
-            extracted_key = next((mapping[key] for key in mapping.keys() if key.lower() in word.lower()), None)
-            
-            if extracted_key and extracted_data.get(extracted_key) and extracted_data[extracted_key] != "NOT FOUND":
-                value_to_fill = extracted_data[extracted_key]
-                
-                for (page, x, y, w, h) in pos_list:
-                    if page == page_num + 1:
-                        x_offset = x + 250
-                        for letter in value_to_fill:
-                            draw.text((x_offset, y - 10), letter, fill="Blue", font=font)
-                            x_offset += font.getbbox(letter)[2] + 10  # Add space between letters
-        
-        images[page_num] = img_pil  # Update image
-    
-    images[0].save(output_pdf_path, save_all=True, append_images=images[1:])
-    return output_pdf_path
+        mapping = {
+            ".name*": "Name",
+            ".date of birth*": "Date of Birth",
+            ".pan*": "PAN Number",
+            ".gender*": "Gender",
+            "address*": "Address",
+            "mobile no.": "Phone Number"
+        }
+
+        # print(f"Extracted Data: {extracted_data}")  # Debugging statement
+
+        for page_num, image in enumerate(images):
+            img_cv = np.array(image)
+            img_pil = image.copy()
+            draw = ImageDraw.Draw(img_pil)
+            # print(f"Processing page {page_num + 1}")
+
+            for word, pos_list in word_positions.items():
+                # print(f"Checking word: {word} with positions: {pos_list}")  # Debugging statement
+                extracted_key = next((mapping[key] for key in mapping.keys() if key.lower() in word.lower()), None)
+                if extracted_key and extracted_data.get(extracted_key) and extracted_data[extracted_key] != "NOT FOUND":
+                    value_to_fill = extracted_data[extracted_key]
+
+                    for (page, x, y, w, h) in pos_list:
+                        if page == page_num + 1:
+                            x_offset = x + 250  # Adjust the x_offset as needed
+                            y_offset = y - 10  # Adjust the y_offset as needed
+                            print(f"Drawing text at ({x_offset}, {y_offset})")  # Debugging statement
+                            for letter in value_to_fill:
+                                draw.text((x_offset, y_offset), letter, fill="Blue", font=font)
+                                x_offset += font.getbbox(letter)[2] + 2  # Adjust the spacing between letters
+
+            images[page_num] = img_pil  # Update image
+
+        images[0].save(output_pdf_path, save_all=True, append_images=images[1:])
+        print(f"Form filled successfully. Output saved to {output_pdf_path}")
+        return output_pdf_path
+
+    except Exception as e:
+        print(f"Error filling form: {e}")
+        raise
 
 def fill_pdf_form(pdf_path, extracted_data):
+    # Ensure extracted_data is a dictionary
+    # if isinstance(extracted_data, str):
+    #     try:
+    #         extracted_data = json.loads(extracted_data)
+    #     except json.JSONDecodeError as e:
+    #         print(f"Error decoding JSON: {e}")
+    #         raise ValueError("extracted_data should be a dictionary or a JSON string that can be converted to a dictionary")
+
+    # if not isinstance(extracted_data, dict):
+    #     raise ValueError("extracted_data should be a dictionary")
+
     search_words = [".name*", ".date of birth*", ".gender*", "address*", ".pan*", "mobile no."]  # List of words to find
     word_positions = find_multiple_word_positions(pdf_path, search_words)
     print(f"Word Positions: {word_positions}")  # Debugging statement
