@@ -14,7 +14,6 @@ export default function UploadForm() {
         setLoading(true);
         const formData = new FormData();
         formData.append('file', pdfFile);
-        formData.append('extracted_data', JSON.stringify({ /* your extracted data here */ }));
 
         try {
             const response = await axios.post('http://localhost:5000/fill-form', formData, {
@@ -23,7 +22,7 @@ export default function UploadForm() {
                 },
                 responseType: 'blob', // Ensure the response is treated as a blob
             });
-            const url = URL.createObjectURL(new Blob([response.data]));
+            const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
             setFilledPdfUrl(url);
         } catch (error) {
             console.error("Error uploading PDF:", error);

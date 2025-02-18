@@ -203,5 +203,7 @@ def fill_pdf_form(pdf_path, extracted_data):
     search_words = [".name*", ".date of birth*", ".gender*", "address*", ".pan*", "mobile no."]  # List of words to find
     word_positions = find_multiple_word_positions(pdf_path, search_words)
     print(f"Word Positions: {word_positions}")  # Debugging statement
-    output_pdf_path = "uploads/filled_form.pdf"
-    return fill_form_with_extracted_data(pdf_path, extracted_data, word_positions, output_pdf_path)
+    output_pdf_path = "uploads/filled_form.pdf"  # Output path for filled PDF
+    result = fill_form_with_extracted_data(pdf_path, extracted_data, word_positions, output_pdf_path)
+    print(f"Result: {result}")  # Debugging statement
+    return result
