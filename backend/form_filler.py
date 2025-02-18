@@ -60,6 +60,16 @@ def extract_text_from_id(image_path):
         match = re.search(pattern, extracted_text)
         extracted_data[key] = match.group(1).strip().upper() if match else "NOT FOUND"
     
+    # Separate the name into first name and last name
+    if "Name" in extracted_data and extracted_data["Name"] != "NOT FOUND":
+        name_parts = extracted_data["Name"].split()
+        if len(name_parts) > 1:
+            extracted_data["First Name"] = " ".join(name_parts[:-1])
+            extracted_data["Last Name"] = name_parts[-1]
+        else:
+            extracted_data["First Name"] = name_parts[0]
+            extracted_data["Last Name"] = ""
+    
     return extracted_data
 
 def find_multiple_word_positions(pdf_path, search_words):
@@ -152,7 +162,9 @@ def fill_form_with_extracted_data(pdf_path, extracted_data, word_positions, outp
             ".pan*": "PAN Number",
             ".gender*": "Gender",
             "address*": "Address",
-            "mobile no.": "Phone Number"
+            "mobile no.": "Phone Number",
+            "First Name": "First Name",
+            "Last Name": "Last Name"
         }
 
         # print(f"Extracted Data: {extracted_data}")  # Debugging statement

@@ -77,6 +77,29 @@ function UploadID() {
     navigate('/upload-form', { state: { idFiles: files, extractedData } });
   };
 
+  const handleSwapNames = () => {
+    let Name = editableData['Name'] || '';
+    let firstName = editableData['First Name'] || '';
+    let lastName = editableData['Last Name'] || '';
+
+    if (Name) {
+      let nameParts = Name.split(' ');
+      if (nameParts.length > 1) {
+        setEditableData({
+          ...editableData,
+          'First Name': nameParts.slice(1).join(' '),
+          'Last Name': nameParts[0],
+        });
+      } else {
+        setEditableData({
+          ...editableData,
+          'First Name': '',
+          'Last Name': firstName,
+        });
+      }
+    }
+  };
+
   return (
     <div>
       <h1>Upload ID</h1>
@@ -106,6 +129,7 @@ function UploadID() {
                   />
                 </div>
               ))}
+              <button id="swapButton" onClick={handleSwapNames}>Swap Names</button>
               <button onClick={handleUpdateData}>Update Data</button>
             </div>
           )}
