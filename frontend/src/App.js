@@ -7,6 +7,7 @@ export default function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<UploadID />} />
+                <Route path="/upload-id" element={<UploadID />} />
                 <Route path="/upload-form" element={<UploadForm />} />
             </Routes>
         </Router>

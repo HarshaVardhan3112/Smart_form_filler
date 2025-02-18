@@ -1,15 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function UploadID() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [extractedData, setExtractedData] = useState(null);
   const [editableData, setEditableData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+
+  // Retrieve state from location if available
+  useEffect(() => {
+    if (location.state) {
+      const { idFiles, extractedData } = location.state;
+      setFile(idFiles[0]);
+      setExtractedData(extractedData);
+      setEditableData(extractedData);
+      setFilePreview(idFiles ? URL.createObjectURL(idFiles[0]) : null);
+    }
+  }, [location.state]);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -52,6 +64,7 @@ function UploadID() {
         },
       });
       setExtractedData(editableData);
+      setIsEditing(false); // Hide the editing interface
       setError(null); // Clear any previous errors
     } catch (error) {
       console.error('Error updating data:', error);
@@ -60,7 +73,7 @@ function UploadID() {
   };
 
   const handleUploadForm = () => {
-    navigate('/upload-form');
+    navigate('/upload-form', { state: { idFiles: [file], extractedData } });
   };
 
   return (
