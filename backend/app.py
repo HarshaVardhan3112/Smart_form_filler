@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_file
 import os
+import json
 from form_filler import extract_text_from_id, fill_pdf_form
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
@@ -21,6 +22,10 @@ def upload_id():
 
     try:
         extracted_data = extract_text_from_id(file_path)
+        # Save extracted data to a temporary file
+        extracted_data_path = os.path.join(UPLOAD_FOLDER, "extracted_data.json")
+        with open(extracted_data_path, "w") as f:
+            json.dump(extracted_data, f)
         return jsonify({"extracted_data": extracted_data})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -28,8 +33,14 @@ def upload_id():
 @app.route("/update-data", methods=["POST"])
 def update_data():
     updated_data = request.json
-    # Here, we can store this temporarily if needed
-    return jsonify({"message": "Details updated successfully!"})
+    # Save updated data to a temporary file
+    extracted_data_path = os.path.join(UPLOAD_FOLDER, "extracted_data.json")
+    try:
+        with open(extracted_data_path, "w") as f:
+            json.dump(updated_data, f)
+        return jsonify({"message": "Details updated successfully!"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/fill-form", methods=["POST"])
 def fill_form():
@@ -42,7 +53,11 @@ def fill_form():
     file.save(pdf_path)
 
     try:
-        extracted_data = request.form.get("extracted_data", {})
+        # Read extracted data from the temporary file
+        extracted_data_path = os.path.join(UPLOAD_FOLDER, "extracted_data.json")
+        with open(extracted_data_path, "r") as f:
+            extracted_data = json.load(f)
+        
         filled_pdf_path = fill_pdf_form(pdf_path, extracted_data)
         return send_file(filled_pdf_path, as_attachment=True, mimetype="application/pdf")
     except Exception as e:
