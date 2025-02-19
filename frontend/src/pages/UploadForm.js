@@ -4,6 +4,8 @@ import axios from "axios";
 import FileUpload from "../components/FileUpload";
 import LoadingSpinner from "../components/LoadingSpinner";
 import PDFPreview from "../components/PDFPreview";
+import { Upload, ArrowLeft, FileText } from 'lucide-react';
+import './UploadForm.css';
 
 export default function UploadForm() {
     const navigate = useNavigate();
@@ -11,12 +13,16 @@ export default function UploadForm() {
     const [pdfFile, setPdfFile] = useState(null);
     const [filledPdfUrl, setFilledPdfUrl] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    // Retrieve state from location if available
     const { idFiles, extractedData } = location.state || {};
 
     const handlePdfUpload = async () => {
-        if (!pdfFile) return;
+        if (!pdfFile) {
+            setError("Please select a PDF file first");
+            return;
+        }
+        setError(null);
         setLoading(true);
         const formData = new FormData();
         formData.append('file', pdfFile);
@@ -26,12 +32,13 @@ export default function UploadForm() {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-                responseType: 'blob', // Ensure the response is treated as a blob
+                responseType: 'blob',
             });
             const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
             setFilledPdfUrl(url);
         } catch (error) {
             console.error("Error uploading PDF:", error);
+            setError("Failed to process the PDF. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -42,15 +49,59 @@ export default function UploadForm() {
     };
 
     return (
-        <div className="container mt-4">
-            <h2>Upload Form</h2>
-            <FileUpload label="Upload Form (PDF)" onFileSelect={setPdfFile} />
-            <button onClick={handlePdfUpload} className="btn btn-primary">Upload & Fill Form</button>
-            <button onClick={handleBack} className="btn btn-secondary">Back</button>
+        <div className="form-upload-container">
+            <div className="form-header">
+                <button onClick={handleBack} className="back-button">
+                    <ArrowLeft size={20} />
+                    Back to ID Upload
+                </button>
+                <h2 className="form-title">Upload Your Form</h2>
+            </div>
 
-            {loading && <LoadingSpinner message="Filling form..." />}
+            <div className="upload-section">
+                <div className="upload-card">
+                    <FileUpload 
+                        label={
+                            <div className="upload-label-content">
+                                <FileText size={32} />
+                                <span>Select or drop your PDF form here</span>
+                            </div>
+                        } 
+                        onFileSelect={setPdfFile} 
+                    />
+                    
+                    {pdfFile && (
+                        <div className="selected-file">
+                            <FileText size={20} />
+                            <span>{pdfFile.name}</span>
+                        </div>
+                    )}
 
-            {filledPdfUrl && <PDFPreview pdfUrl={filledPdfUrl} />}
+                    {error && <div className="error-message">{error}</div>}
+
+                    <button 
+                        onClick={handlePdfUpload} 
+                        className="action-button upload-button"
+                        disabled={!pdfFile || loading}
+                    >
+                        <Upload size={20} />
+                        {loading ? 'Processing...' : 'Process Form'}
+                    </button>
+                </div>
+            </div>
+
+            {loading && (
+                <div className="loading-container">
+                    <LoadingSpinner message="Filling your form..." />
+                </div>
+            )}
+
+            {filledPdfUrl && (
+                <div className="preview-section">
+                    <h3 className="preview-title">Filled Form Preview</h3>
+                    <PDFPreview pdfUrl={filledPdfUrl} />
+                </div>
+            )}
         </div>
     );
 }

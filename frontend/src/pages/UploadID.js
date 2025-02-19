@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Upload, Edit2, Save, RefreshCw, ArrowRight, ChevronDown, Check, X } from 'lucide-react';
+import './UploadID.css';
 
 function UploadID() {
   const navigate = useNavigate();
@@ -11,6 +13,9 @@ function UploadID() {
   const [editableData, setEditableData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const extractedDataRef = useRef(null);
 
   // Retrieve state from location if available
   useEffect(() => {
@@ -23,13 +28,39 @@ function UploadID() {
     }
   }, [location.state]);
 
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+    if (!isEditing) {
+      // Reset editable data to current extracted data when starting edit
+      setEditableData({...extractedData});
+    }
+  };
+
+  const handleInlineEdit = (key, value) => {
+    setEditableData(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
   const handleFileChange = (event) => {
     const selectedFiles = Array.from(event.target.files);
     setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
     setFilePreviews(prevPreviews => [...prevPreviews, ...selectedFiles.map(file => URL.createObjectURL(file))]);
   };
 
+  const scrollToExtractedData = () => {
+    extractedDataRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const handleUpload = async () => {
+    if (files.length === 0) {
+      setError('Please select at least one ID document');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
 
@@ -42,10 +73,14 @@ function UploadID() {
       const newExtractedData = response.data.extracted_data;
       setExtractedData(prevData => ({ ...prevData, ...newExtractedData }));
       setEditableData(prevData => ({ ...prevData, ...newExtractedData }));
-      setError(null); // Clear any previous errors
+      setShowScrollIndicator(true);
+      // Short delay to ensure the data is rendered before scrolling
+      setTimeout(scrollToExtractedData, 500);
     } catch (error) {
       console.error('Error uploading files:', error);
       setError('Failed to upload files. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -59,18 +94,25 @@ function UploadID() {
 
   const handleUpdateData = async () => {
     try {
+      setIsLoading(true);
       await axios.post('http://localhost:5000/update-data', editableData, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
       setExtractedData(editableData);
-      setIsEditing(false); // Hide the editing interface
-      setError(null); // Clear any previous errors
+      setIsEditing(false);
+      setError(null);
     } catch (error) {
       console.error('Error updating data:', error);
       setError('Failed to update data. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditableData({...extractedData});
   };
 
   const handleUploadForm = () => {
@@ -101,39 +143,139 @@ function UploadID() {
   };
 
   return (
-    <div>
-      <h1>Upload ID</h1>
-      <input type="file" onChange={handleFileChange} multiple />
-      {filePreviews.map((preview, index) => (
-        <img key={index} src={preview} alt={`Uploaded ID ${index + 1}`} style={{ width: '200px', marginTop: '10px' }} />
-      ))}
-      <button onClick={handleUpload}>Upload</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {Object.keys(extractedData).length > 0 && (
-        <div>
-          <h2>Extracted Data</h2>
-          <pre>{JSON.stringify(extractedData, null, 2)}</pre>
-          <button onClick={() => setIsEditing(!isEditing)}>Edit</button>
-          <button onClick={handleUploadForm}>Upload Form</button>
-          {isEditing && (
-            <div>
-              <h2>Edit Data</h2>
-              {Object.keys(editableData).map((key) => (
-                <div key={key}>
-                  <label>{key}:</label>
-                  <input
-                    type="text"
-                    name={key}
-                    value={editableData[key]}
-                    onChange={handleEditChange}
-                  />
-                </div>
-              ))}
-              <button id="swapButton" onClick={handleSwapNames}>Swap Names</button>
-              <button onClick={handleUpdateData}>Update Data</button>
+    <div className="upload-container">
+      <h1 className="title">Upload Your ID Card</h1>
+      
+      <div className="upload-section">
+        <label className="file-upload-label">
+          <Upload className="upload-icon" size={32} />
+          <span>Click here or drop your ID card images</span>
+          <input 
+            type="file" 
+            onChange={handleFileChange} 
+            multiple 
+            className="file-input" 
+          />
+        </label>
+
+        <div className="preview-container">
+          {filePreviews.map((preview, index) => (
+            <div key={index} className="preview-card">
+              <img 
+                src={preview} 
+                alt={`Uploaded ID ${index + 1}`} 
+                className="preview-image" 
+              />
+              <div className="preview-overlay">
+                <span className="preview-number">ID {index + 1}</span>
+              </div>
             </div>
+          ))}
+        </div>
+
+        {files.length > 0 && (
+          <button 
+            onClick={handleUpload} 
+            className={`action-button upload-button ${isLoading ? 'loading' : ''}`}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="button-spinner"></div>
+                Processing...
+              </>
+            ) : (
+              <>
+                <Upload size={20} />
+                Process ID Cards
+              </>
+            )}
+          </button>
+        )}
+      </div>
+
+      {error && <p className="error-message">{error}</p>}
+
+      {showScrollIndicator && !isLoading && Object.keys(extractedData).length === 0 && (
+        <div className="scroll-indicator" onClick={scrollToExtractedData}>
+          <span>View Extracted Data</span>
+          <ChevronDown size={24} className="bounce" />
+        </div>
+      )}
+
+      {Object.keys(extractedData).length > 0 && (
+        <div className="extracted-data-section" ref={extractedDataRef}>
+          <div className="section-header">
+            <h2 className="section-title">Extracted Information</h2>
+            <div className="edit-controls">
+              {isEditing ? (
+                <>
+                  <button 
+                    onClick={handleUpdateData} 
+                    className="action-button save-button"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="button-spinner"></div>
+                    ) : (
+                      <>
+                        <Check size={20} />
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                  <button 
+                    onClick={handleCancelEdit} 
+                    className="action-button cancel-button"
+                    disabled={isLoading}
+                  >
+                    <X size={20} />
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={handleEditToggle} 
+                  className="action-button edit-button"
+                >
+                  <Edit2 size={20} />
+                  Edit Details
+                </button>
+              )}
+            </div>
+          </div>
+          
+          <div className={`data-card ${isEditing ? 'editing' : ''}`}>
+            {Object.entries(isEditing ? editableData : extractedData).map(([key, value]) => (
+              <div key={key} className="data-row">
+                <span className="data-label">{key}:</span>
+                {isEditing ? (
+                  <div className="editable-value">
+                    <input
+                      type="text"
+                      value={value}
+                      onChange={(e) => handleInlineEdit(key, e.target.value)}
+                      className="inline-edit-input"
+                      autoFocus={key === Object.keys(editableData)[0]}
+                    />
+                    <Edit2 size={16} className="edit-indicator" />
+                  </div>
+                ) : (
+                  <span className="data-value">{value}</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {!isEditing && (
+            <button 
+              onClick={handleUploadForm} 
+              className="action-button next-button"
+            >
+              Continue to Form
+              <ArrowRight size={20} />
+            </button>
           )}
-          {/* <button onClick={() => setFiles([])}>Upload Another ID</button> */}
         </div>
       )}
     </div>
