@@ -22,6 +22,16 @@ function UploadID() {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Hide preloader after 5 seconds
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 7300);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Retrieve state from location if available
   useEffect(() => {
@@ -284,7 +294,14 @@ function UploadID() {
   };
 
   return (
-    <div className="upload-container">
+    <>
+    <div className={`preloader ${!loading ? 'preloader-hidden' : ''}`}>
+        <div className="preloader-content">
+          <h1 className="preloader-title">Smart Form Filler</h1>
+          <p className="preloader-caption">Intelligent Document Processing Made Easy</p>
+        </div>
+      </div>
+    <div className={`upload-container ${!loading ? 'content-visible' : ''}`}>
       <h1 className="title">Upload Your ID Card</h1>
 
       <div className="upload-section">
@@ -481,8 +498,16 @@ function UploadID() {
             </button>
           )}
         </div>
+        
       )}
+      <div className="footer-container">
+        <div className="logo-section">
+          <h2 className="logo-text">Smart Form Filler</h2>
+          <p className="logo-caption">Intelligent Document Processing Made Easy</p>
+        </div>
+      </div>
     </div>
+    </>
   );
 }
 

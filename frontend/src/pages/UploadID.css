@@ -1,10 +1,145 @@
+/* Preloader Styles */
+.preloader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f6ff 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+}
+
+.preloader-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.preloader-content {
+  text-align: center;
+  animation: fadeInScale 1s ease-out;
+}
+
+.preloader-title {
+  font-size: 4rem;
+  color: #2b6cb0;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  opacity: 0;
+  animation: slideInFade 1s ease-out forwards 0.5s;
+}
+
+.preloader-caption {
+  font-size: 1.5rem;
+  color: #4a5568;
+  opacity: 0;
+  animation: slideInFade 1s ease-out forwards 1s;
+}
+
+
 /* Main Container Styles */
 .upload-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    font-family: system-ui, -apple-system, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: calc(100vh - 200px); /* Ensure content fills viewport */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+  visibility: hidden;
   }
+  .content-visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+  }
+
+
+  /* Animations */
+@keyframes fadeInScale {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFade {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Add a loading indicator */
+.preloader::after {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.preloader::before {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 4px;
+  background: #2b6cb0;
+  border-radius: 2px;
+  animation: loading 4s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes loading {
+  0% {
+    width: 0;
+    left: 0;
+  }
+  50% {
+    width: 100%;
+    left: 0;
+  }
+  100% {
+    width: 0;
+    left: 100%;
+  }
+}
+
+/* Ensure smooth transitions on mobile */
+@media (max-width: 768px) {
+  .preloader-title {
+    font-size: 2.5rem;
+  }
+  
+  .preloader-caption {
+    font-size: 1.2rem;
+  }
+}
+  
 
   /* Add these styles to UploadID.css */
 .upload-options {
@@ -25,12 +160,13 @@
   background: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #4299e1;
+  color: #3b82f6; /* Camera blue */
+  border-color: #3b82f6;
 }
 
 .camera-button:hover {
-  border-color: #4299e1;
-  background: #ebf8ff;
+  background: #dbeafe;
+  border-color: #2563eb;
 }
 
 .camera-button span {
@@ -87,7 +223,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(59, 130, 246, 0.9) !important;
   border: none;
   cursor: pointer;
   display: flex;
@@ -98,7 +234,7 @@
 }
 
 .switch-camera-button:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(37, 99, 235, 0.9) !important;
   transform: scale(1.1);
 }
 
@@ -111,7 +247,7 @@
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(59, 130, 246, 0.9) !important;
   border: none;
   padding: 5px;
   cursor: pointer;
@@ -127,7 +263,7 @@
 }
 
 .capture-button:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(37, 99, 235, 0.9) !important;
 }
 
 .capture-button:active .capture-button-inner {
@@ -185,6 +321,7 @@
   .switch-camera-button {
     width: 40px;
     height: 40px;
+    
   }
 }
   
@@ -308,7 +445,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(229, 62, 62, 0.9);
+    background: rgba(239, 68, 68, 0.9) !important; /* Danger red */
     color: white;
     border: none;
     border-radius: 50%;
@@ -329,7 +466,7 @@
   }
   
   .delete-button:hover {
-    background: rgb(229, 62, 62);
+    background: rgb(220, 38, 38) !important;
     transform: scale(1.1);
   }
   
@@ -343,46 +480,61 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 0.5rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1rem 2rem;
+  font-size: 1.1rem;
+  transform: scale(1);
+  transition: all 0.3s ease;
+  }
+
+  .action-button:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Add icons to buttons for better visual understanding */
+  .action-button svg {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
   }
   
   .upload-button {
-    background: #4299e1;
+    background: #22c55e !important; 
     color: white;
     margin: 2rem auto 0;
   }
   
   .upload-button:hover {
-    background: #3182ce;
+    background: #16a34a !important;
     transform: translateY(-2px);
   }
   
   .edit-button {
-    background: #48bb78;
-    color: white;
+    background: #f59e0b !important; /* Warning amber */
+  color: white;
   }
   
   .edit-button:hover {
-    background: #38a169;
+    background: #d97706 !important;
   }
   
   .next-button {
-    background: #805ad5;
+    background: #22c55e !important; 
     color: white;
   }
   
   .next-button:hover {
-    background: #6b46c1;
+    background: #16a34a !important;
   }
   
   .swap-button {
     background: #ed8936;
     color: white;
+    
+
   }
   
   .swap-button:hover {
@@ -390,12 +542,14 @@
   }
   
   .save-button {
-    background: #48bb78;
+    background: #22c55e !important; /* Success green */
     color: white;
+    white-space: nowrap;
+    height: 63px;
   }
   
   .save-button:hover {
-    background: #3182ce;
+    background: #16a34a !important;
   }
   .save-button:hover:not(:disabled) {
     background: #38a169;
@@ -409,9 +563,13 @@
   }
 
   .cancel-button {
-    background: #e53e3e;
+    background: #ef4444 !important; /* Danger red */
+  color: white;
   }
   
+  .cancel-button:hover {
+    background: #dc2626 !important;
+  }
   .cancel-button:hover:not(:disabled) {
     background: #c53030;
   }
@@ -821,5 +979,57 @@
     .preview-container.single-preview .preview-card {
       width: 100%;
       max-width: 300px;
+    }
+  }
+
+
+  /* Footer Container */
+.footer-container {
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  width: 100vw;
+  margin-top:  8rem;
+  margin-bottom: -3rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f6ff 100%);
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+}
+  /* Logo Section Styles */
+  .logo-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: -2rem 2rem 1rem 2rem;
+    text-align: center;
+  }
+  
+  .logo-text {
+    font-size: 2.8rem;
+    color: #2b6cb0;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .logo-caption {
+    color: #4a5568;
+    font-size: 1.4rem;
+    font-weight: 500;
+    margin-top: -1rem;
+  }
+
+  @media (max-width: 768px) {
+    .logo-section {
+      padding: 2rem 1rem;
+    }
+    
+    .logo-text {
+      font-size: 2rem;
+    }
+    
+    .logo-caption {
+      font-size: 1.1rem;
     }
   }
