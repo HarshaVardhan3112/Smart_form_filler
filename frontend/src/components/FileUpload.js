@@ -69,13 +69,6 @@ export default function FileUpload({ label, onFileSelect }) {
                     )}
                 </label>
             </div>
-            
-            {selectedFileName && (
-                <div className="selected-file">
-                    <File size={20} />
-                    <span>{selectedFileName}</span>
-                </div>
-            )}
         </div>
     );
 }
