@@ -28,7 +28,7 @@ function UploadID() {
     // Hide preloader after 5 seconds
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 7300);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);

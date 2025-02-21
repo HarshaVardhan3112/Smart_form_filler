@@ -11,15 +11,6 @@ export default function PDFPreview({ pdfUrl }) {
                     title="PDF Preview"
                 ></iframe>
             </div>
-            
-            <a 
-                href={pdfUrl} 
-                download="filled_form.pdf" 
-                className="download-button"
-            >
-                <Download size={20} />
-                Download Filled Form
-            </a>
         </div>
     );
 }
