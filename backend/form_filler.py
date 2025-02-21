@@ -12,6 +12,8 @@ from PIL import ImageDraw, ImageFont
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from io import BytesIO
+from PIL import ImageDraw, ImageFont
+import textwrap
 
 def extract_text_from_id(image_path):
     os.environ["GOOGLE_API_KEY"] = "AIzaSyBSlkTW52fBvrHs-oByEb0AgSBo44qjm0A"
@@ -51,14 +53,19 @@ def extract_text_from_id(image_path):
         "Gender": r"Gender:\s*(MALE|FEMALE|OTHER)",
         "PAN Number": r"PAN Number:\s*(.+)\n",
         "VID Number": r"VID Number:\s*(\d{16})",
-        "Address": r"Address:\s*(.+)"
+        "Address": r"Address:\s*([\w\s,.-]+?)(?:\s*(\d{6}))?\s*(?=\n|$)"
     }
     
     extracted_data = {}
     
     for key, pattern in fields.items():
         match = re.search(pattern, extracted_text)
-        extracted_data[key] = match.group(1).strip().upper() if match else "NOT FOUND"
+        if key == "Address" and match:
+            address_part = match.group(1).strip().upper()
+            pincode_part = match.group(2)  # pincode part
+            extracted_data[key] = f"{address_part} {pincode_part}".strip() if pincode_part else address_part
+        else:
+            extracted_data[key] = match.group(1).strip().upper() if match else "NOT FOUND"
     
     # Separate the name into first name and last name
     if "Name" in extracted_data and extracted_data["Name"] != "NOT FOUND":
@@ -164,31 +171,50 @@ def fill_form_with_extracted_data(pdf_path, extracted_data, word_positions, outp
             "address*": "Address",
             "mobile no.": "Phone Number",
             "First Name": "First Name",
-            "Last Name": "Last Name"
+            "Last Name": "Last Name",
         }
 
-        # print(f"Extracted Data: {extracted_data}")  # Debugging statement
+        # Calculate a fixed width for each letter
+        sample_letter = "G"  # Use "A" or any character as a reference
+        fixed_letter_width = font.getbbox(sample_letter)[2] + 13  # Width of "A" + spacing
 
         for page_num, image in enumerate(images):
             img_cv = np.array(image)
             img_pil = image.copy()
             draw = ImageDraw.Draw(img_pil)
-            # print(f"Processing page {page_num + 1}")
 
             for word, pos_list in word_positions.items():
-                # print(f"Checking word: {word} with positions: {pos_list}")  # Debugging statement
-                extracted_key = next((mapping[key] for key in mapping.keys() if key.lower() in word.lower()), None)
+                extracted_key = next(
+                    (mapping[key] for key in mapping.keys() if key.lower() in word.lower()), None
+                )
                 if extracted_key and extracted_data.get(extracted_key) and extracted_data[extracted_key] != "NOT FOUND":
                     value_to_fill = extracted_data[extracted_key]
 
                     for (page, x, y, w, h) in pos_list:
                         if page == page_num + 1:
-                            x_offset = x + 250  # Adjust the x_offset as needed
+                            x_offset = x + 225  # Adjust the x_offset as needed
                             y_offset = y - 10  # Adjust the y_offset as needed
-                            print(f"Drawing text at ({x_offset}, {y_offset})")  # Debugging statement
-                            for letter in value_to_fill:
-                                draw.text((x_offset, y_offset), letter, fill="Blue", font=font)
-                                x_offset += font.getbbox(letter)[2] + 2  # Adjust the spacing between letters
+                            available_width = 100 # Maximum width for the address, adjust as needed
+
+                            if extracted_key == "Address":
+                                # Wrap the address text
+                                address = value_to_fill[:74]
+                                # Wrap the truncated address text
+                                wrapped_text = textwrap.fill(address, width=40)
+                                lines = wrapped_text.splitlines()
+                                line_height = font.getbbox("A")[3] # Approximate line height
+
+                                for line in lines:
+                                    x_line_offset = x_offset  # Reset x_line_offset for each line
+                                    for letter in line:
+                                        draw.text((x_line_offset, y_offset), letter, fill="Blue", font=font)
+                                        x_line_offset += fixed_letter_width    # Letter spacing for address
+                                    y_offset += line_height + 22  # Adjust vertical spacing
+                            else:
+                                # For other fields, draw text normally
+                                for letter in value_to_fill:
+                                    draw.text((x_offset, y_offset), letter, fill="Blue", font=font)
+                                    x_offset += fixed_letter_width    # Adjust the spacing between letters
 
             images[page_num] = img_pil  # Update image
 
@@ -199,6 +225,7 @@ def fill_form_with_extracted_data(pdf_path, extracted_data, word_positions, outp
     except Exception as e:
         print(f"Error filling form: {e}")
         raise
+
 
 def fill_pdf_form(pdf_path, extracted_data):
     # Ensure extracted_data is a dictionary
