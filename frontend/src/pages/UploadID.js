@@ -24,6 +24,18 @@ function UploadID() {
   const streamRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
+  const [keyOrder, setKeyOrder] = useState([
+          "Name",
+          "First Name",
+          "Last Name",
+          "Date of Birth",
+          "Phone Number",
+          "Aadhaar Number",
+          "Gender",
+          "PAN Number",
+          "VID Number",
+          "Address"
+      ]);
   useEffect(() => {
     // Hide preloader after 5 seconds
     const timer = setTimeout(() => {
@@ -41,6 +53,11 @@ function UploadID() {
       setExtractedData(extractedData);
       setEditableData(extractedData);
       setFilePreviews(idFiles.map(file => URL.createObjectURL(file)));
+      // Update key order based on the order from the backend, if available
+      const receivedKeys = Object.keys(extractedData);
+      if (receivedKeys.length > 0) {
+          setKeyOrder(receivedKeys);
+      }
     }
   }, [location.state]);
 
@@ -293,6 +310,44 @@ function UploadID() {
     }
   };
 
+  const renderExtractedData = () => {
+    if (!extractedData || Object.keys(extractedData).length === 0) {
+      return <p>No data extracted yet.</p>;
+    }
+
+    return (
+      <div className="data-card">
+        {keyOrder.map((key) => (
+          <div key={key} className="data-row">
+            <span className="data-label">{key}:</span>
+            {isEditing ? (
+              <div className="editable-value">
+                <input
+                  type="text"
+                  value={editableData[key] || ''}
+                  onChange={(e) => handleInlineEdit(key, e.target.value)}
+                  className="inline-edit-input"
+                  autoFocus={key === keyOrder[0]}
+                />
+                <Edit2 size={16} className="edit-indicator" />
+                {key === 'Last Name' && (
+                  <button
+                    onClick={handleSwapNames}
+                    className="swap-names-button"
+                    title="Correct First and Last Names"
+                  >
+                    <Repeat size={16} />
+                  </button>
+                )}
+              </div>
+            ) : (
+              <span className="data-value">{extractedData[key] || ''}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
   return (
     <>
     <div className={`preloader ${!loading ? 'preloader-hidden' : ''}`}>
@@ -457,49 +512,19 @@ function UploadID() {
             </div>
           </div>
 
-          <div className={`data-card ${isEditing ? 'editing' : ''}`}>
-            {Object.entries(isEditing ? editableData : extractedData).map(([key, value]) => (
-              <div key={key} className="data-row">
-                <span className="data-label">{key}:</span>
-                {isEditing ? (
-                  <div className="editable-value">
-                    <input
-                      type="text"
-                      value={value}
-                      onChange={(e) => handleInlineEdit(key, e.target.value)}
-                      className="inline-edit-input"
-                      autoFocus={key === Object.keys(editableData)[0]}
-                    />
-                    <Edit2 size={16} className="edit-indicator" />
-                    {key === 'Last Name' && (
-                      <button
-                        onClick={handleSwapNames}
-                        className="swap-names-button"
-                        title="Correct First and Last Names"
-                      >
-                        <Repeat size={16} />
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <span className="data-value">{value}</span>
-                )}
-              </div>
-            ))}
-          </div>
+          {renderExtractedData()}
 
-          {!isEditing && (
-            <button
-              onClick={handleUploadForm}
-              className="action-button next-button"
-            >
-              Continue to Form
-              <ArrowRight size={20} />
-            </button>
-          )}
-        </div>
-        
-      )}
+            {!isEditing && (
+              <button
+                onClick={handleUploadForm}
+                className="action-button next-button"
+              >
+                Continue to Form
+                <ArrowRight size={20} />
+              </button>
+            )}
+          </div>
+        )}
       <div className="footer-container">
         <div className="logo-section">
           <h2 className="logo-text">Smart Form Filler</h2>
