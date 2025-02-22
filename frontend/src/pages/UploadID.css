@@ -1,3 +1,28 @@
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(
+    -45deg, 
+    #efb353, 
+    #ef92b6, 
+    #23a6d5, 
+    #23d5ab
+  );
+  animation: gradient 15s ease infinite;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+@keyframes gradient {
+  0% {
+    background-position: 0% 30%;
+  }
+  30% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
 /* Preloader Styles */
 .preloader {
   position: fixed;
@@ -995,6 +1020,7 @@
   margin-bottom: -3rem;
   background: linear-gradient(135deg, #f0f9ff 0%, #e6f6ff 100%);
   box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+
 }
   /* Logo Section Styles */
   .logo-section {
