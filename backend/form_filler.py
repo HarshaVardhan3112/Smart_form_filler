@@ -46,10 +46,10 @@ def extract_text_from_id(image_path):
     extracted_text = re.sub(r'\*+', '', extracted_data_str)
     
     fields = {
-        "Name": r"Name:\s*(.+)\n",
+        "Name": r"Name:\s*([A-Za-z\s/]+)\n",
         "Date of Birth": r"Date of Birth:\s*(\d{2}-\d{2}-\d{4})",
         "Phone Number": r"Phone Number:\s*(\d{10})",
-        "Aadhaar Number": r"Aadhaar Number:\s*(\d{12})",
+        "Aadhaar Number": r"Aadhaar Number:\s*(\d{4}\s?\d{4}\s?\d{4})",
         "Gender": r"Gender:\s*(MALE|FEMALE|OTHER)",
         "PAN Number": r"PAN Number:\s*(.+)\n",
         "VID Number": r"VID Number:\s*(\d{16})",
