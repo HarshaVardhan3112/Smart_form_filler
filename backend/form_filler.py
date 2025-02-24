@@ -14,10 +14,17 @@ from reportlab.lib.pagesizes import letter
 from io import BytesIO
 from PIL import ImageDraw, ImageFont
 import textwrap
+from dotenv import load_dotenv
 
 def extract_text_from_id(image_path):
-    os.environ["GOOGLE_API_KEY"] = "AIzaSyBSlkTW52fBvrHs-oByEb0AgSBo44qjm0A"
-    genai.configure(api_key="AIzaSyBSlkTW52fBvrHs-oByEb0AgSBo44qjm0A")
+    load_dotenv()
+
+    # Access the API key from the environment variables
+    api_key = os.getenv('GOOGLE_API_KEY')
+    os.environ['GOOGLE_API_KEY'] = api_key
+
+    # Configure the genai library with the API key
+    genai.configure(api_key=api_key)
     img = PIL.Image.open(image_path)
     model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(
@@ -32,7 +39,7 @@ def extract_text_from_id(image_path):
         - Gender (MALE/FEMALE/OTHER)
         - PAN Number (10-character alphanumeric)
         - VID Number (16-digit format)
-        - Address
+        - Address 
 
 
         If any field is missing, try to infer it or return "NOT FOUND".
@@ -49,7 +56,7 @@ def extract_text_from_id(image_path):
         "Name": r"Name:\s*([A-Za-z\s/]+)\n",
         "Date of Birth": r"Date of Birth:\s*(\d{2}-\d{2}-\d{4})",
         "Phone Number": r"Phone Number:\s*(\d{10})",
-        "Aadhaar Number": r"Aadhaar Number:\s*(\d{4}\s?\d{4}\s?\d{4})",
+        "Aadhaar Number": r"Aadhaar Number:\s*(\d{4}\s?\d{4}\s?\d{4}|\d{12})",  # 4-4-4 or 12-digit format
         "Gender": r"Gender:\s*(MALE|FEMALE|OTHER)",
         "PAN Number": r"PAN Number:\s*(.+)\n",
         "VID Number": r"VID Number:\s*(\d{16})",
