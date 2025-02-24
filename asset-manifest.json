@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Smart_form_filler/static/css/main.9b03a7d1.css",
+    "main.js": "/Smart_form_filler/static/js/main.91480114.js",
+    "static/js/453.8ab44547.chunk.js": "/Smart_form_filler/static/js/453.8ab44547.chunk.js",
+    "index.html": "/Smart_form_filler/index.html",
+    "main.9b03a7d1.css.map": "/Smart_form_filler/static/css/main.9b03a7d1.css.map",
+    "main.91480114.js.map": "/Smart_form_filler/static/js/main.91480114.js.map",
+    "453.8ab44547.chunk.js.map": "/Smart_form_filler/static/js/453.8ab44547.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9b03a7d1.css",
+    "static/js/main.91480114.js"
+  ]
+}
