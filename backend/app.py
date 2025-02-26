@@ -5,6 +5,8 @@ from form_filler import extract_text_from_id, fill_pdf_form
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 
+
+
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for simplicity
 UPLOAD_FOLDER = "uploads"
@@ -82,6 +84,10 @@ def fill_form():
         return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/")
+def home():
+    return {"message": "Smart Form Filler is running!"}
 
 
 if __name__ == "__main__":
