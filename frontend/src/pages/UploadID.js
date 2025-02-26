@@ -223,7 +223,7 @@ function UploadID() {
     files.forEach(file => formData.append('files', file));
 
     try {
-      const response = await axios.post('${API_BASE_URL}/upload-id', formData, {
+      const response = await axios.post(`${API_BASE_URL}/upload-id`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -264,7 +264,7 @@ function UploadID() {
   const handleUpdateData = async () => {
     try {
       setIsLoading(true);
-      await axios.post('${API_BASE_URL}/update-data', editableData, {
+      await axios.post(`${API_BASE_URL}/update-data`, editableData, {
         headers: {
           'Content-Type': 'application/json',
         },
