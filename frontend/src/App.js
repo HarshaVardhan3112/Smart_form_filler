@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import UploadID from "./pages/UploadID";
 import UploadForm from "./pages/UploadForm";
 import SuccessPage from "./pages/SuccessPage";
