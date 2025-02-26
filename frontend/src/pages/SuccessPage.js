@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Download, RefreshCw, AlertTriangle, Check, Share2, Copy, Send, Star } from 'lucide-react';
 import { Alert, AlertDescription } from './Alert';
 import './SuccessPage.css';
+import { API_BASE_URL } from './config';
 
 export default function SuccessPage() {
     const navigate = useNavigate();

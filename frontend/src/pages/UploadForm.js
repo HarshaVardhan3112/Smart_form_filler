@@ -6,6 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import PDFPreview from "../components/PDFPreview";
 import { Upload, ArrowLeft, FileText, ExternalLink, Download,Check } from 'lucide-react';
 import './UploadForm.css';
+import { API_BASE_URL } from './config';
 
 export default function UploadForm() {
     const navigate = useNavigate();
@@ -40,7 +41,7 @@ export default function UploadForm() {
         formData.append('file', pdfFile);
 
         try {
-            const response = await axios.post('http://localhost:5000/fill-form', formData, {
+            const response = await axios.post('${API_BASE_URL}/fill-form', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
