@@ -15,6 +15,11 @@ from io import BytesIO
 from PIL import ImageDraw, ImageFont
 import textwrap
 from dotenv import load_dotenv
+from flask import Flask
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 def extract_text_from_id(image_path):
     load_dotenv()

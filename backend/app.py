@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for simplicity
+CORS(app, resources={r"/*": {"origins": "*"}})  #allow all origins for CORS
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -78,8 +78,8 @@ def fill_form():
         response = send_file(filled_pdf_path, as_attachment=False, mimetype="application/pdf")
         
         # Delete the extracted data file after sending the response
-        # if os.path.exists(extracted_data_path):
-        #     os.remove(extracted_data_path)
+        if os.path.exists(extracted_data_path):
+            os.remove(extracted_data_path)
         
         return response
     except Exception as e:

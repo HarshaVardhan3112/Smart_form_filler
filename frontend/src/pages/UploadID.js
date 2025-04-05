@@ -235,7 +235,7 @@ function UploadID() {
       // Short delay to ensure the data is rendered before scrolling
       setTimeout(scrollToExtractedData, 500);
     } catch (error) {
-      console.error('Error uploading files:', error);
+      console.error('Error uploading files:', error.response || error.message); // Log detailed error
       setError('Failed to upload files. Please try again.');
     } finally {
       setIsLoading(false);

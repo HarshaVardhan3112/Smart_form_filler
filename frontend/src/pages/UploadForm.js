@@ -45,12 +45,12 @@ export default function UploadForm() {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-                responseType: 'blob',
+                responseType: 'blob', // Ensure the backend returns a PDF blob
             });
             const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
             setFilledPdfUrl(url);
         } catch (error) {
-            console.error("Error uploading PDF:", error);
+            console.error("Error uploading PDF:", error.response || error.message); // Log detailed error
             setError("Failed to process the PDF. Please try again.");
         } finally {
             setLoading(false);
