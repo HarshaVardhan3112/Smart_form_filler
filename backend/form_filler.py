@@ -1,5 +1,4 @@
 import cv2
-import pytesseract
 from PyPDF2 import PdfReader, PdfWriter
 import json
 import os
@@ -17,6 +16,11 @@ import textwrap
 from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
+import pytesseract
+
+# Explicitly set the path to Tesseract executable
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
