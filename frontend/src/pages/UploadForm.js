@@ -50,7 +50,16 @@ export default function UploadForm() {
             const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
             setFilledPdfUrl(url);
         } catch (error) {
-            console.error("Error uploading PDF:", error.response || error.message); // Log detailed error
+            if (error.response && error.response.data instanceof Blob) {
+                const errorText = await error.response.data.text();
+                console.error("Server error details:", errorText);
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    console.error("Parsed server error:", errorJson);
+                } catch (e) {
+                    console.error("Raw error response:", errorText);
+                }
+            }
             setError("Failed to process the PDF. Please try again.");
         } finally {
             setLoading(false);
